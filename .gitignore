@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.streamlit/secrets.toml
+*.py[cod]
+.DS_Store
+sartrace_analysis_bundle.zip
+# Downloaded benchmark inputs and generated metric outputs
+/data/
+/artifacts/ombria*/

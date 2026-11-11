@@ -1,0 +1,48 @@
+{
+  "project": "SARtrace",
+  "version": "0.3.0",
+  "benchmark": "OMBRIA Sentinel-1 VV model-free flood screening",
+  "status": "implemented_fixture_tested_real_dataset_not_executed",
+  "dataset": {
+    "name": "OMBRIA",
+    "zenodo_record": "https://zenodo.org/records/6777870",
+    "github_repository": "https://github.com/geodrak/OMBRIA",
+    "paper_doi": "10.1109/JSTARS.2022.3155559",
+    "public_train_chips": 624,
+    "public_test_chips": 70,
+    "additional_2021_event_chips": {
+      "ALBANIA": {"ems_event_id": 501, "chips": 22, "role": "new_event_generalisation"},
+      "TIMOR": {"ems_event_id": 507, "chips": 10, "role": "new_event_generalisation"},
+      "GUYANA": {"ems_event_id": 514, "chips": 30, "role": "new_event_generalisation"},
+      "FRANCE": {"ems_event_id": 492, "chips": 88, "role": "geographic_recurrence_stress"}
+    },
+    "total_sentinel1_chips_in_crosschecked_release": 844,
+    "inputs": "single-band 256x256 8-bit unsigned VV intensity PNGs",
+    "units": "stored intensity DN; not calibrated dB or sigma0",
+    "reference": "binary masks derived from Copernicus EMS Rapid Mapping products",
+    "license": "CC BY 4.0",
+    "zenodo_archive_md5": "3c4cd27b9c869bb32b30c7f10fecced3"
+  },
+  "methods_implemented": [
+    "otsu_after_original",
+    "fixed_after_global",
+    "fixed_temporal_delta",
+    "robust_temporal_delta"
+  ],
+  "shared_with_core": [
+    "median_mad_threshold",
+    "signed_change_mask",
+    "two_sided_change_masks"
+  ],
+  "evaluation_protocols": [
+    "official_train_to_official_test",
+    "official_train_to_2021_event_holdout",
+    "leave_one_event_out_cross_validation"
+  ],
+  "leakage_policy": "Official thresholds calibrated only on public training labels; event-holdout labels are scoring-only; LOEO fold thresholds use only non-held-out event groups. Overlaps and exact input hashes are recorded.",
+  "metric_policy": "Undefined class metrics are null; macro chip means exclude undefined values and report defined-sample counts.",
+  "real_data_metrics": null,
+  "reason_not_executed": "Zenodo archive download failed in the build environment. No OMBRIA pixels were processed locally and no real-data score is claimed.",
+  "how_to_run": "python scripts/run_ombria_benchmark.py --download --require-all-events --data-root data/ombria --output-dir artifacts/ombria-v0.3",
+  "test_status": "26 tests passed on deterministic fixtures; real-data end-to-end run pending"
+}

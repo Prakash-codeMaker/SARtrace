@@ -10,140 +10,84 @@
 [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.12-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Tests](https://img.shields.io/badge/tests-26%20passing-20bfa8?style=flat-square)](tests/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8b9cf6?style=flat-square)](LICENSE)
-[![Data: OMBRIA](https://img.shields.io/badge/benchmark-OMBRIA%20Sentinel--1-f0a34a?style=flat-square)](docs/OMBRIA_BENCHMARK.md)
+[![Benchmark](https://img.shields.io/badge/benchmark-OMBRIA%20Sentinel--1-f0a34a?style=flat-square)](docs/OMBRIA_BENCHMARK.md)
 
 **Compare. Measure. Trace. Export.**
 
-[Quick start](#-quick-start) · [How it works](#-how-it-works) · [Real SAR sample](#-real-sentinel-1-data-in-the-readme) · [Benchmark](#-benchmarking-with-ombria) · [Limitations](#-what-sartrace-does-and-does-not-do)
+[Quick start](#-quick-start) · [Workflow](#-how-it-works) · [Real SAR samples](#-real-sentinel-1-data) · [Benchmark](#-ombria-benchmark) · [Limitations](#-scope-and-limitations)
 
 </div>
 
 ---
 
-## The idea in 15 seconds
+## The idea
 
-A Sentinel-1 radar image is captured over an area. Another image is captured later over the same area. SARtrace compares the two **only after they have been calibrated, terrain-corrected and co-registered to the same grid**. It measures the signed backscatter difference, highlights unusual candidate regions, and packages the evidence for inspection.
+A Sentinel-1 radar image captures how the Earth's surface reflects radar energy at one point in time. A second acquisition captures it later. SARtrace compares the two **after they have been calibrated, terrain-corrected and co-registered to the same grid**.
 
-> **Where did the radar signal change, by how much, and what evidence can I export for someone to review?**
+It measures signed backscatter change, highlights candidate regions, and exports the analysis as geospatial evidence.
 
-It does **not** decide what caused the change. Flooding, soil moisture, vegetation, construction, geometry and other effects can all influence radar backscatter.
+> **Where did the radar signal change, by how much, and what evidence can an analyst inspect?**
 
-## See the workflow
+A change is not automatically a flood, a building, or damage. Moisture, vegetation, surface roughness, geometry, speckle and registration error can also alter radar backscatter.
 
-<div align="center">
-
-<img src="docs/assets/sartrace-workflow.gif" alt="Animated SARtrace pipeline showing before scene, after scene, signed backscatter difference, candidate regions, and evidence export" width="100%" />
-
-<sub>This animation uses SARtrace's deterministic synthetic demo inputs — <strong>it is not a real Sentinel-1 acquisition</strong>. Real OMBRIA Sentinel-1 chips are shown below.</sub>
-
-</div>
-
-### What the analysis produces
+## How it works
 
 <div align="center">
-
-<img src="docs/demo_preview.png" alt="SARtrace four-panel synthetic preview showing before, after, signed change, and candidate regions" width="100%" />
-
-<sub>Static product preview from the deterministic synthetic demonstration. The sample shapes are simulated to show both decreased and increased backscatter.</sub>
-
+<img src="docs/assets/sartrace-workflow.svg" alt="Animated SARtrace workflow from before and after Sentinel-1 scenes through validation, signed change, robust thresholding, candidate regions and evidence export" width="100%" />
+<sub>Animated workflow illustration. The built-in app demo uses deterministic synthetic inputs; genuine OMBRIA Sentinel-1 samples are shown below.</sub>
 </div>
 
-## Real Sentinel-1 data in the README
+### Processing stages
 
-These are **real Sentinel-1 sample chips** from the public [OMBRIA dataset](https://github.com/geodrak/OMBRIA), not generated illustrations. The three files are the matched `0001` sample from OMBRIA's training split: before event, after event, and the associated Copernicus Emergency Management Service (EMS) reference mask.
+1. **Validate the pair.** Check dimensions, CRS, affine transform, nodata, polarisation and declared units. Misaligned scenes are rejected; they are never silently resampled.
+2. **Compare the signal.** Convert known linear-power inputs to dB when requested, then calculate `delta = after − before`.
+3. **Screen robustly.** Estimate a median/MAD-based threshold and keep decreases and increases separate.
+4. **Extract candidate regions.** Use 8-connected components, filter small regions and calculate signal statistics.
+5. **Export evidence.** Package signed GeoTIFF layers, GeoJSON regions, a JSON report and input provenance.
+
+### What gets exported?
+
+| File | What it contains |
+|---|---|
+| `delta_backscatter_db.tif` | Signed after-minus-before backscatter difference |
+| `change_candidates.tif` | Candidate classes: stable, decreased, increased, invalid |
+| `relative_evidence_index.tif` | Relative signal-strength diagnostic — **not a probability** |
+| `change_regions.geojson` | Candidate region geometries for GIS inspection |
+| `analysis_report.json` | Thresholds, input hashes, grid details and region statistics |
+
+## Real Sentinel-1 data
+
+The following three matched sample chips are from the public [OMBRIA dataset](https://github.com/geodrak/OMBRIA), sample `0001` in the official training split. They are genuine Sentinel-1 VV image chips and their associated Copernicus Emergency Management Service (EMS) reference mask.
 
 <table>
-<tr><th align="center">BEFORE · Sentinel-1</th><th align="center">AFTER · Sentinel-1</th><th align="center">EMS reference mask</th></tr>
+<tr><th align="center">BEFORE · Sentinel-1 VV</th><th align="center">AFTER · Sentinel-1 VV</th><th align="center">EMS reference mask</th></tr>
 <tr>
-<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/BEFORE/S1_before_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/BEFORE/S1_before_0001.png" alt="OMBRIA Sentinel-1 before-event sample chip 0001" width="220"></a></td>
-<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/AFTER/S1_after_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/AFTER/S1_after_0001.png" alt="OMBRIA Sentinel-1 after-event sample chip 0001" width="220"></a></td>
-<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/MASK/S1_mask_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/MASK/S1_mask_0001.png" alt="OMBRIA EMS reference mask sample chip 0001" width="220"></a></td>
+<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/BEFORE/S1_before_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/BEFORE/S1_before_0001.png" alt="Real OMBRIA Sentinel-1 before-event chip 0001" width="220"></a></td>
+<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/AFTER/S1_after_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/AFTER/S1_after_0001.png" alt="Real OMBRIA Sentinel-1 after-event chip 0001" width="220"></a></td>
+<td align="center"><a href="https://github.com/geodrak/OMBRIA/blob/master/OmbriaS1/train/MASK/S1_mask_0001.png"><img src="https://raw.githubusercontent.com/geodrak/OMBRIA/master/OmbriaS1/train/MASK/S1_mask_0001.png" alt="OMBRIA Copernicus EMS reference mask chip 0001" width="220"></a></td>
 </tr>
 </table>
 
-<sub>Source: <a href="https://github.com/geodrak/OMBRIA">geodrak/OMBRIA</a>, <code>OmbriaS1/train</code>, sample 0001. The dataset is not bundled here. OMBRIA is distributed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; cite the dataset and its paper when reusing it.</sub>
+<sub>Source: <a href="https://github.com/geodrak/OMBRIA">geodrak/OMBRIA</a>, <code>OmbriaS1/train</code>, sample 0001. OMBRIA dataset DOI: <a href="https://doi.org/10.5281/zenodo.6777870">10.5281/zenodo.6777870</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Images are linked to their original source and are not copied into this repository.</sub>
 
-**Important data distinction:** these are single-band 256 × 256, 8-bit VV intensity PNG chips. Their values are digital numbers (DN), **not calibrated dB or sigma-nought**. SARtrace's GeoTIFF workflow and its OMBRIA benchmark are kept separate so their units are not conflated.
+**Unit note:** OMBRIA preview chips are single-band 256 × 256, 8-bit VV intensity PNGs. Their values are digital numbers (DN), **not calibrated dB or sigma-nought**. SARtrace keeps this dataset-specific benchmark separate from the calibrated GeoTIFF analysis workflow.
 
-## ✦ What SARtrace does
+## ✦ Capabilities
 
-| Capability | What it means |
+| Capability | Implementation |
 |---|---|
-| **Strict input checks** | Verifies single-band rasters, dimensions, CRS, affine transform, nodata and polarisation metadata. It will not silently resample a misaligned pair. |
-| **Unit-aware comparison** | Accepts calibrated dB or known linear-power backscatter and converts linear power to dB. |
-| **Robust change screening** | Uses a median/MAD-derived threshold to find candidate changes without training a model. |
-| **Signed change map** | Keeps decreased and increased backscatter separate instead of flattening both into one class. |
-| **Region extraction** | Uses 8-connected components, filters tiny regions and reports per-region signal statistics. |
-| **Portable evidence bundle** | Exports GeoTIFF layers, GeoJSON polygons, a JSON analysis report and input provenance. |
-| **Reproducible benchmark harness** | Compares four simple baselines on OMBRIA with train/test, event-holdout and leave-one-event-out protocols. |
-| **Local-first interface** | Includes a Streamlit app and deterministic demo pair; no account or API key is needed for the synthetic demo. |
-
-## ⚙️ How it works
-
-```mermaid
-flowchart TD
-    A[Before scene<br/>calibrated backscatter] --> V[Validate input contract]
-    B[After scene<br/>same acquisition setup] --> V
-    V --> C[Convert to common dB scale]
-    C --> D[Compute signed delta<br/>after − before]
-    D --> E[Estimate robust noise<br/>median + MAD]
-    E --> F[Threshold increases<br/>and decreases separately]
-    F --> G[8-connected components]
-    G --> H[Remove tiny components<br/>calculate region statistics]
-    H --> I[Export evidence bundle]
-    I --> J[GeoTIFF · GeoJSON · JSON]
-```
-
-### 1. Validate the pair before comparing pixels
-
-Both scenes must describe the same raster grid. SARtrace checks:
-
-- same raster dimensions;
-- matching coordinate reference system (CRS);
-- matching affine transform;
-- compatible nodata coverage;
-- same polarisation when provided; and
-- a declared unit convention.
-
-No automatic warp or resampling is performed. Misregistration can create false change around roads, field boundaries, rivers and other edges, so a pair that fails the grid contract is rejected with an actionable error.
-
-### 2. Compute signed backscatter change
-
-For calibrated backscatter represented in dB:
-
-\[\Delta_{dB}(x,y) = B_{after}(x,y) - B_{before}(x,y)\]
-
-Negative values indicate a decrease; positive values indicate an increase. The result is a signal difference, not a semantic label.
-
-### 3. Estimate a robust threshold
-
-SARtrace calculates a median absolute-change centre and a median absolute deviation (MAD)-based robust scale. A configurable minimum threshold acts as a floor:
-
-\[T = \max(T_{min},\; m + k\,(1.4826\,MAD))\]
-
-where `m` is the median of absolute changes and `k` is the configured multiplier. Candidate decreases and increases are thresholded separately. Small connected components can then be removed.
-
-### 4. Export an evidence bundle
-
-| Output | Purpose |
-|---|---|
-| `delta_backscatter_db.tif` | Signed `after − before` change in dB |
-| `change_candidates.tif` | Candidate class raster: `0` stable, `1` decreased, `2` increased, `255` invalid |
-| `relative_evidence_index.tif` | Relative signal-strength diagnostic; not a probability |
-| `change_regions.geojson` | Candidate region geometries for GIS inspection |
-| `analysis_report.json` | Thresholds, input hashes, grid details, region statistics and interpretation guardrails |
-
-Area estimates are only produced for projected metric CRSs. Geographic or unknown CRSs do not receive a guessed pixel area.
+| Strict raster contract | Single-band inputs; dimensions, CRS, transform and nodata validation |
+| Unit-aware analysis | Calibrated dB or explicitly declared linear-power backscatter |
+| Robust screening | Median/MAD threshold with configurable floor and multiplier |
+| Signed candidates | Decreased and increased backscatter remain separate |
+| Region analysis | 8-connected components, size filtering and region statistics |
+| Geospatial export | GeoTIFF, GeoJSON and JSON audit report |
+| Local-first app | Streamlit interface with deterministic synthetic demo |
+| Benchmark harness | Four model-free baselines, train/test and event-held-out protocols |
 
 ## 🚀 Quick start
 
-### Requirements
-
-- Python 3.10–3.12
-- Windows, macOS or Linux
-- For real GeoTIFF analysis: two compatible, preprocessed single-band SAR backscatter rasters
-
-### Install and launch
+**Requirements:** Python 3.10–3.12.
 
 ```bash
 git clone https://github.com/Prakash-codeMaker/SARtrace.git
@@ -151,7 +95,7 @@ cd SARtrace
 python -m venv .venv
 
 # Windows PowerShell
-.venv\\Scripts\\Activate.ps1
+.venv\Scripts\Activate.ps1
 
 # macOS / Linux
 # source .venv/bin/activate
@@ -161,99 +105,122 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open the local URL printed by Streamlit. Select **Synthetic radar pair** and run the analysis. The demo is deterministic and clearly labelled synthetic.
+Open the local Streamlit URL and select **Synthetic radar pair** to explore the complete workflow. The demo is deterministic and clearly labelled synthetic.
 
-### Run the tests
+### Run tests
 
 ```bash
 pip install -e ".[dev]"
-pytest -q
+python -m pytest -q
 ```
 
-**Release verification:** 26 automated tests passed. These tests cover implementation behavior and data-integrity checks; they are not a substitute for evaluating the method on independent real scenes.
+**Release verification:** 26 automated tests passed for v0.3.0. They cover deterministic fixtures and data-integrity behavior; they do not establish scientific accuracy on independent real scenes.
 
-### Run the OMBRIA benchmark
+## 🧪 OMBRIA benchmark
+
+SARtrace includes four model-free baselines:
+
+1. Otsu threshold on after-event intensity.
+2. Fixed global threshold on after-event intensity.
+3. Fixed threshold on temporal intensity difference.
+4. Robust median/MAD threshold on temporal intensity difference.
+
+The harness supports official training-to-test evaluation, official-training-calibrated event holdouts, and leave-one-event-out cross-validation across available 2021 event groups. Albania (EMS 501), Timor (507) and Guyana (514) are treated as the primary new-event groups; France (492) is reported separately as a recurrence/geographic stress test.
+
+Run the full benchmark from a network-enabled machine:
 
 ```bash
-python scripts/run_ombria_benchmark.py --download --require-all-events \\
-  --data-root data/ombria \\
+python scripts/run_ombria_benchmark.py --download --require-all-events \
+  --data-root data/ombria \
   --output-dir artifacts/ombria-v0.3
 ```
 
-The runner downloads the Zenodo archive, verifies the published MD5 before extraction, checks expected sample counts, and writes aggregate, per-chip, per-event and input-manifest outputs. Use `--no-events` for the official train/test split only. Read [the benchmark protocol](docs/OMBRIA_BENCHMARK.md) before interpreting scores.
+The downloader checks the MD5 published on the Zenodo record before safe extraction. The runner writes per-chip, per-event, aggregate, calibration and SHA-256 input-manifest outputs. See [the complete benchmark protocol](docs/OMBRIA_BENCHMARK.md).
 
-## 🧪 Benchmarking with OMBRIA
+<blockquote>
+<strong>Important:</strong> the benchmark implementation and fixture tests are included, but the full OMBRIA archive was not downloaded and processed during the v0.3.0 build. No real-data precision, recall, F1 or IoU scores are claimed in this repository. Do not treat the existence of an evaluation protocol as a benchmark result.
+</blockquote>
 
-SARtrace includes a benchmark harness for four model-free baselines:
+### Keep the units separate
 
-1. Otsu threshold on after-event intensity;
-2. fixed global threshold on after-event intensity;
-3. fixed threshold on temporal intensity delta; and
-4. robust median/MAD threshold on temporal intensity delta.
+- **GeoTIFF core:** calibrated dB or known linear-power backscatter.
+- **OMBRIA harness:** 8-bit PNG intensity values in DN.
 
-Calibration is performed on training data only. The harness reports official train-to-test metrics, per-chip and per-event results, plus leave-one-event-out evaluation on additional event folders. France is reported separately as a recurrence/geographic stress test.
-
-**Do not mistake a benchmark protocol for a benchmark result.** The benchmark implementation and fixture tests are present, but the full OMBRIA archive was not downloaded and executed during the v0.3.0 build. Therefore this repository does not publish real-data precision, recall, F1 or IoU scores yet. Run the command above and inspect the generated outputs before reporting any score.
-
-### Unit boundary
-
-- GeoTIFF core: calibrated dB or known linear-power inputs.
-- OMBRIA benchmark: 8-bit PNG intensity values in DN.
-
-The shared median/MAD and signed-change helpers do not imply that these inputs have the same physical unit. DN results must not be described as calibrated dB.
+A threshold learned from OMBRIA DN values must not be described as a calibrated dB threshold or transferred directly to ICEYE data.
 
 ## 🛰️ Use your own Sentinel-1 scenes
 
-SARtrace's GeoTIFF core expects **two already-preprocessed scenes**. Prepare them using a dedicated SAR processing chain such as ESA SNAP or pyroSAR before loading them.
+The GeoTIFF workflow expects two already-preprocessed scenes. Prepare them using a SAR processing chain such as [ESA SNAP](https://step.esa.int/main/toolboxes/snap/) or [pyroSAR](https://github.com/johntruckenbrodt/pyroSAR).
 
-Each input should be:
+Before upload, each scene should be:
 
-1. radiometrically calibrated;
-2. terrain-corrected / geocoded;
-3. co-registered to the same pixel grid;
-4. acquired with comparable geometry (ideally the same relative orbit, pass direction and polarisation); and
-5. expressed in the same known units.
+- radiometrically calibrated;
+- terrain-corrected / geocoded;
+- co-registered to the exact same pixel grid;
+- acquired with comparable geometry (ideally matching relative orbit, pass direction and polarisation); and
+- expressed in the same known units.
 
-Useful references:
+Useful discovery resources: [Copernicus Data Space Browser](https://dataspace.copernicus.eu/browser/), [Copernicus STAC API](https://documentation.dataspace.copernicus.eu/APIs/STAC.html) and [ASF Vertex](https://vertex.daac.asf.alaska.edu/).
 
-- [Copernicus Data Space Browser](https://dataspace.copernicus.eu/browser/) and [STAC API documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html)
-- [ASF Vertex](https://vertex.daac.asf.alaska.edu/)
-- [ESA SNAP](https://step.esa.int/main/toolboxes/snap/)
-- [pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)
+## Scope and limitations
 
-For the input unit selector, choose **dB** only when raster values are already decibels. Choose **Linear power** only for positive calibrated power backscatter. Do not use linear mode for amplitude, DN, or an unknown scale.
-
-## 🧭 What SARtrace does and does not do
-
-| SARtrace does | SARtrace does not (yet) do |
+| SARtrace does | SARtrace does not yet do |
 |---|---|
 | Compare a compatible pair of preprocessed backscatter rasters | Download or preprocess raw Sentinel-1 SAFE products |
-| Screen for signed backscatter differences | Apply orbit files, thermal-noise removal, calibration, debursting or terrain correction |
-| Highlight candidate regions and export evidence | Confirm that a candidate is a flood or another specific event |
-| Preserve input identity and configuration | Produce calibrated probabilities or operational alerts |
-| Run reproducible baseline comparisons | Claim validated real-scene performance before the benchmark is run |
+| Screen signed changes and find candidate regions | Apply orbit files, thermal-noise removal, calibration or terrain correction |
+| Export GIS-ready evidence and provenance | Automatically co-register or resample input scenes |
+| Compare transparent baseline methods | Confirm that a change is a flood or another specific event |
+| Run local synthetic examples | Produce calibrated probabilities or operational alerts |
 
 SARtrace is a **change-screening and evidence-export prototype**, not a flood-mapping authority or an operational early-warning service. Human and domain-expert review remains essential.
 
-## 📚 Project documentation
+## Project structure
+
+```text
+SARtrace/
+├── app.py
+├── sartrace/
+│   ├── core.py
+│   ├── thresholds.py
+│   ├── io.py
+│   ├── demo.py
+│   └── benchmark_ombria.py
+├── scripts/
+│   └── run_ombria_benchmark.py
+├── tests/
+├── docs/
+│   ├── assets/sartrace-workflow.svg
+│   ├── ARCHITECTURE.md
+│   ├── OMBRIA_BENCHMARK.md
+│   ├── RESEARCH_NOTES.md
+│   ├── VALIDATION.md
+│   └── V0_3_RELEASE_REPORT.md
+├── .github/workflows/tests.yml
+├── pyproject.toml
+└── requirements.txt
+```
+
+## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [OMBRIA benchmark protocol](docs/OMBRIA_BENCHMARK.md)
-- [Research notes and related tools](docs/RESEARCH_NOTES.md)
+- [Research notes and related projects](docs/RESEARCH_NOTES.md)
 - [Validation notes](docs/VALIDATION.md)
 - [v0.3.0 release report](docs/V0_3_RELEASE_REPORT.md)
 - [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
 
-## Acknowledgements
+## Research basis and acknowledgements
 
-- Sentinel-1 is part of the European Commission / ESA Copernicus programme.
-- OMBRIA dataset: Drakonakis et al., *A Semantically Annotated Large-Scale Dataset of SAR Images for Flood Detection*, IEEE JSTARS (2022), [DOI: 10.1109/JSTARS.2022.3155559](https://doi.org/10.1109/JSTARS.2022.3155559); [dataset record](https://doi.org/10.5281/zenodo.6777870).
-- Geospatial raster/vector interoperability is supported by the GDAL ecosystem.
+- OMBRIA: Drakonakis et al., *A Semantically Annotated Large-Scale Dataset of SAR Images for Flood Detection*, IEEE JSTARS (2022), [DOI: 10.1109/JSTARS.2022.3155559](https://doi.org/10.1109/JSTARS.2022.3155559). Dataset record: [10.5281/zenodo.6777870](https://doi.org/10.5281/zenodo.6777870).
+- [GDAL](https://github.com/OSGeo/gdal) provides foundational geospatial raster/vector interoperability.
+- [pyroSAR](https://github.com/johntruckenbrodt/pyroSAR) and [ESA SNAP](https://step.esa.int/main/toolboxes/snap/) are relevant SAR preprocessing resources.
+
+The project draws on public research and engineering patterns; it does not copy source code from the referenced repositories.
 
 ## License
 
-SARtrace source code is released under the MIT License. Dataset contents remain subject to their original dataset license and are not redistributed in this repository.
+SARtrace source code is released under the MIT License. Dataset content remains subject to its original dataset licence and is not redistributed in this repository.
 
 ---
 

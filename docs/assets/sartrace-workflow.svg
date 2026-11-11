@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760" role="img" aria-labelledby="title desc">
+<title id="title">SARtrace animated two-date radar change screening workflow</title>
+<desc id="desc">An animated technical diagram showing two prepared Sentinel-1 scenes entering strict validation, signed backscatter differencing, robust median absolute deviation screening, candidate region extraction, and evidence export.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#102734"/><stop offset=".55" stop-color="#091923"/><stop offset="1" stop-color="#07121a"/></linearGradient>
+  <linearGradient id="mint" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#3ec8ac"/><stop offset="1" stop-color="#9af0cf"/></linearGradient>
+  <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5d92cf"/><stop offset="1" stop-color="#96c7f1"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#d58b43"/><stop offset="1" stop-color="#f5c57a"/></linearGradient>
+  <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#21404c" stroke-width="1" opacity=".36"/></pattern>
+  <pattern id="speckle" width="11" height="11" patternUnits="userSpaceOnUse"><rect width="11" height="11" fill="#12242d"/><path d="M1 2h2v2H1zm6 1h1v1H7zM3 8h2v1H3zm5 1h2v1H8z" fill="#8ba7ac" opacity=".65"/></pattern>
+  <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>
+    text{font-family:Inter,Segoe UI,Arial,sans-serif}
+    .mono{font-family:Consolas,monospace;letter-spacing:1.6px}
+    .muted{fill:#87a6b2}.white{fill:#e9f5f6}.mint{fill:#83e4c7}
+    .card{fill:#0e222d;stroke:#2b4a56;stroke-width:1.4}
+    .step{fill:#102a35;stroke:#315462;stroke-width:1.4}
+    .small{font-size:13px}.tiny{font-size:11px}
+    .route{fill:none;stroke:#4a8290;stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 10;animation:flow 2.4s linear infinite}
+    .pulse{animation:pulse 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+    .scan{animation:scan 4s ease-in-out infinite}
+    .glowdot{filter:url(#glow);animation:dot 3s linear infinite}
+    @keyframes flow{to{stroke-dashoffset:-72}}
+    @keyframes pulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+    @keyframes scan{0%,100%{transform:translateX(0);opacity:.2}50%{transform:translateX(190px);opacity:.95}}
+    @keyframes dot{0%,100%{opacity:.25}50%{opacity:1}}
+  </style>
+</defs>
+<rect width="1440" height="760" rx="28" fill="url(#bg)"/>
+<rect width="1440" height="760" rx="28" fill="url(#grid)"/>
+<circle cx="1270" cy="70" r="180" fill="#2c856f" opacity=".08"/>
+<circle cx="110" cy="650" r="220" fill="#3976a4" opacity=".07"/>
+<text x="58" y="58" class="mono mint" font-size="12">SARTRACE / PROCESSING PIPELINE</text>
+<text x="58" y="105" class="white" font-size="34" font-weight="800">Two observations. One traceable change story.</text>
+<text x="60" y="135" class="muted" font-size="15">A local, evidence-first Sentinel-1 backscatter screening workflow</text>
+<rect x="1174" y="48" width="208" height="34" rx="17" fill="#102f31" stroke="#387c6d"/>
+<circle cx="1194" cy="65" r="5" fill="#74e1bd" class="pulse"/>
+<text x="1210" y="69" class="mint mono" font-size="10">ANIMATED OVERVIEW</text>
+
+<!-- Inputs -->
+<rect class="card" x="58" y="180" width="282" height="158" rx="16"/>
+<text x="82" y="211" class="mono" fill="#91b5c0" font-size="11">INPUT / 01</text>
+<text x="82" y="239" class="white" font-size="21" font-weight="700">Before scene</text>
+<rect x="82" y="255" width="104" height="58" rx="6" fill="url(#speckle)" stroke="#45616b"/>
+<path d="M83 296 Q110 274 132 291 T185 274" fill="none" stroke="#a9c5c7" opacity=".65" stroke-width="2"/>
+<path d="M95 259L166 309M116 255L184 296" stroke="#688894" opacity=".32"/>
+<text x="203" y="275" class="muted small">Calibrated</text><text x="203" y="294" class="muted small">backscatter</text><text x="203" y="313" class="mint mono tiny">T₀ · VV / VH</text>
+
+<rect class="card" x="58" y="365" width="282" height="158" rx="16"/>
+<text x="82" y="396" class="mono" fill="#91b5c0" font-size="11">INPUT / 02</text>
+<text x="82" y="424" class="white" font-size="21" font-weight="700">After scene</text>
+<rect x="82" y="440" width="104" height="58" rx="6" fill="url(#speckle)" stroke="#45616b"/>
+<path d="M83 482 Q110 460 132 477 T185 460" fill="none" stroke="#a9c5c7" opacity=".65" stroke-width="2"/>
+<path d="M82 468h104" stroke="#f0b96f" stroke-width="5" opacity=".65"/>
+<text x="203" y="460" class="muted small">Same grid</text><text x="203" y="479" class="muted small">and units</text><text x="203" y="498" fill="#f1c17e" class="mono tiny">T₁ · VV / VH</text>
+
+<!-- connector to validation -->
+<path class="route" d="M340 258H385V332H421"/>
+<path class="route" d="M340 444H385V370H421"/>
+<circle class="glowdot" cx="385" cy="332" r="5" fill="#8fe7cd"/>
+<rect class="step" x="421" y="260" width="222" height="188" rx="16"/>
+<text x="445" y="291" class="mono mint" font-size="11">01 / QUALITY GATE</text>
+<text x="445" y="323" class="white" font-size="20" font-weight="700">Validate pair</text>
+<path d="M447 344h18l7 7 13-15" stroke="#74dfbd" stroke-width="3" fill="none" stroke-linecap="round"/>
+<text x="497" y="352" class="muted small">Shape + CRS</text>
+<path d="M447 374h18l7 7 13-15" stroke="#74dfbd" stroke-width="3" fill="none" stroke-linecap="round"/>
+<text x="497" y="382" class="muted small">Affine grid + nodata</text>
+<path d="M447 404h18l7 7 13-15" stroke="#74dfbd" stroke-width="3" fill="none" stroke-linecap="round"/>
+<text x="497" y="412" class="muted small">Units + polarisation</text>
+<text x="445" y="434" fill="#dba86b" class="tiny">Reject mismatch · no silent resampling</text>
+
+<!-- signed delta -->
+<path class="route" d="M643 354H690"/>
+<circle class="glowdot" cx="668" cy="354" r="5" fill="#8fe7cd"/>
+<rect class="step" x="690" y="260" width="206" height="188" rx="16"/>
+<text x="713" y="291" class="mono" fill="#9ac8ef" font-size="11">02 / MEASUREMENT</text>
+<text x="713" y="323" class="white" font-size="20" font-weight="700">Signed delta</text>
+<rect x="714" y="341" width="158" height="50" rx="8" fill="#0b1c25" stroke="#284b57"/>
+<text x="793" y="372" text-anchor="middle" fill="#a7d7f5" font-size="18" font-weight="700">after − before</text>
+<path d="M716 409h66" stroke="#d8a45e" stroke-width="5" stroke-linecap="round"/>
+<path d="M803 409h66" stroke="#6bd9bd" stroke-width="5" stroke-linecap="round"/>
+<text x="716" y="432" class="tiny muted">Decrease</text><text x="803" y="432" class="tiny muted">Increase</text>
+
+<!-- robust -->
+<path class="route" d="M896 354H943"/>
+<circle class="glowdot" cx="921" cy="354" r="5" fill="#8fe7cd"/>
+<rect class="step" x="943" y="260" width="206" height="188" rx="16"/>
+<text x="966" y="291" class="mono" fill="#d8b27c" font-size="11">03 / SCREENING</text>
+<text x="966" y="323" class="white" font-size="20" font-weight="700">Robust threshold</text>
+<path d="M968 391V348M968 391H1123" stroke="#54717b" stroke-width="1.3"/>
+<path d="M976 381l17-12 17 5 17-25 17 12 17-31 17 13 17-19" stroke="#81d9c1" fill="none" stroke-width="2.4"/>
+<path d="M976 364H1126" stroke="#e7b36d" stroke-width="1.8" stroke-dasharray="5 5"/>
+<text x="968" y="419" class="muted small">Median + 1.4826 × MAD</text>
+<text x="968" y="436" class="tiny" fill="#e9bd80">Separate positive / negative sides</text>
+
+<!-- regions -->
+<path class="route" d="M1149 354H1195"/>
+<circle class="glowdot" cx="1173" cy="354" r="5" fill="#8fe7cd"/>
+<rect class="step" x="1195" y="260" width="187" height="188" rx="16"/>
+<text x="1217" y="291" class="mono mint" font-size="11">04 / GEOMETRY</text>
+<text x="1217" y="323" class="white" font-size="20" font-weight="700">Find regions</text>
+<rect x="1219" y="342" width="138" height="59" rx="6" fill="#11242d" stroke="#3b5c66"/>
+<path d="M1231 355l23-5 11 15-8 20-22-2zM1291 350l27 8-4 24-19 5-13-16z" fill="#e0a65c" opacity=".9"/>
+<path d="M1231 355l23-5 11 15-8 20-22-2z" fill="none" stroke="#f5d19a" stroke-width="2" class="pulse"/>
+<path d="M1291 350l27 8-4 24-19 5-13-16z" fill="none" stroke="#9bf0d3" stroke-width="2" class="pulse"/>
+<text x="1218" y="423" class="muted small">8-connected components</text>
+<text x="1218" y="438" class="tiny muted">Filter · measure · label</text>
+
+<!-- animated moving line on route -->
+<circle r="5" fill="#b1f3de" class="glowdot">
+  <animateMotion dur="6s" repeatCount="indefinite" path="M340 258H385V332H421H643H690H896H943H1149H1195"/>
+</circle>
+
+<!-- outputs footer -->
+<path d="M1288 448V555H1120" class="route"/>
+<rect x="58" y="566" width="1324" height="132" rx="18" fill="#0c1d27" stroke="#274854" stroke-width="1.4"/>
+<text x="86" y="601" class="mono mint" font-size="11">05 / EVIDENCE EXPORT</text>
+<text x="86" y="635" class="white" font-size="23" font-weight="700">A reviewable result — not an automated event verdict.</text>
+<text x="86" y="665" class="muted" font-size="13">Input hashes · threshold parameters · signed change raster · candidate mask · region geometries</text>
+<g transform="translate(1006 598)">
+  <rect width="100" height="54" rx="9" fill="#142d37" stroke="#41606a"/><text x="50" y="24" fill="#9ac8ef" text-anchor="middle" font-size="15" font-weight="700">GeoTIFF</text><text x="50" y="42" fill="#88a9b4" text-anchor="middle" font-size="10">RASTER</text>
+  <rect x="116" width="100" height="54" rx="9" fill="#142d37" stroke="#41606a"/><text x="166" y="24" fill="#83dfc3" text-anchor="middle" font-size="15" font-weight="700">GeoJSON</text><text x="166" y="42" fill="#88a9b4" text-anchor="middle" font-size="10">VECTORS</text>
+  <rect x="232" width="100" height="54" rx="9" fill="#142d37" stroke="#41606a"/><text x="282" y="24" fill="#edc17f" text-anchor="middle" font-size="15" font-weight="700">JSON</text><text x="282" y="42" fill="#88a9b4" text-anchor="middle" font-size="10">AUDIT REPORT</text>
+</g>
+<text x="86" y="683" class="tiny muted">Workflow illustration · synthetic demo inputs in the app · real OMBRIA Sentinel-1 sample chips in the README below</text>
+</svg>

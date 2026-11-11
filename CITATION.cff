@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use SARtrace, please cite this software release."
+title: "SARtrace: Evidence-first Sentinel-1 Backscatter Change Screening"
+authors:
+  - family-names: Jain
+    given-names: Prakash Chand
+version: 0.3.0
+date-released: 2026-11-11
+license: MIT
+abstract: >-
+  A local-first SAR change-screening lab with strict GeoTIFF analysis and a
+  leakage-aware, model-free OMBRIA Sentinel-1 flood benchmark harness. The OMBRIA
+  benchmark operates on 8-bit image intensity values, not calibrated dB.
